@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Plazas · Campas Madrid</title>
+<style>
+  :root {
+    --bg: #14171c;
+    --surface: #1c2128;
+    --surface-2: #232a33;
+    --line: #2e3742;
+    --fg: #eef2f6;
+    --fg-muted: #9aa6b2;
+    --libre: #34d27b;
+    --libre-bg: #11301f;
+    --libre-line: #1d5638;
+    --ocupada: #3a4450;
+    --ocupada-fg: #6b7682;
+    --accent: #ffb020;
+    --stale: #ff6b5e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.4;
+    padding-bottom: 3rem;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(20,23,28,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 0.85rem 1rem 0.7rem;
+  }
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+  h1 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  h1 .accent { color: var(--accent); }
+  .updated {
+    font-size: 0.72rem;
+    color: var(--fg-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .updated.stale { color: var(--stale); }
+
+  .totals {
+    display: flex;
+    gap: 1.1rem;
+    font-size: 0.78rem;
+    color: var(--fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .totals b { color: var(--libre); font-weight: 700; font-size: 0.95rem; }
+  .totals .occ b { color: var(--fg); }
+
+  .controls {
+    padding: 0.7rem 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  #search {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    font-size: 0.95rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+  #search::placeholder { color: var(--fg-muted); }
+
+  .filter-row { display: flex; gap: 0.4rem; }
+  .filter-btn {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--fg-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem;
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .filter-btn.active {
+    background: var(--libre-bg);
+    border-color: var(--libre-line);
+    color: var(--libre);
+  }
+  .filter-btn.all.active {
+    background: var(--surface);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  main { padding: 0.9rem 1rem 0; }
+
+  .campa { margin-bottom: 1.6rem; }
+  .campa-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .campa-name { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.02em; }
+  .campa-count { font-size: 0.74rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+  .campa-count b { color: var(--libre); }
+
+  .zona { margin-bottom: 0.9rem; }
+  .zona-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-muted);
+    margin-bottom: 0.4rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 0.4rem;
+  }
+  .plaza {
+    background: var(--ocupada);
+    color: var(--ocupada-fg);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0.5rem 0.3rem;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    position: relative;
+  }
+  .plaza.libre {
+    background: var(--libre-bg);
+    color: var(--libre);
+    border-color: var(--libre-line);
+  }
+  .plaza .state {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.15rem;
+    opacity: 0.85;
+  }
+
+  .empty {
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+
+  .status {
+    text-align: center;
+    color: var(--fg-muted);
+    font-size: 0.9rem;
+    padding: 3rem 1rem;
+  }
+  .status.error { color: var(--stale); }
+
+  footer {
+    margin-top: 1.5rem;
+    padding: 0 1rem;
+    font-size: 0.68rem;
+    color: var(--fg-muted);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .plaza { transition: transform 0.08s ease; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1>Plazas <span class="accent">Madrid</span></h1>
+    <span class="updated" id="updated">—</span>
+  </div>
+  <div class="totals">
+    <span><b id="t-libre">—</b> libres</span>
+    <span class="occ"><b id="t-occ">—</b> ocupadas</span>
+    <span><b id="t-total" style="color:var(--fg-muted)">—</b> total</span>
+  </div>
+</header>
+
+<div class="controls">
+  <input type="search" id="search" placeholder="Buscar plaza o zona…" autocomplete="off" inputmode="search">
+  <div class="filter-row">
+    <button class="filter-btn all active" data-filter="all">Todas</button>
+    <button class="filter-btn" data-filter="libre">Solo libres</button>
+  </div>
+</div>
+
+<main id="main">
+  <div class="status" id="status">Cargando plazas…</div>
+</main>
+
+<footer id="footer"></footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // El JSON vive en el mismo repo/origen → ruta relativa, sin CORS.
+  var JSON_URL = "madrid.json";
+  var REFRESH_MS = 120000;   // recarga el JSON cada 2 min en el navegador
+  var STALE_MIN = 20;        // si el dato tiene más de 20 min, avisar
+
+  var state = { data: null, filter: "all", query: "" };
+
+  var els = {
+    status: document.getElementById("status"),
+    main: document.getElementById("main"),
+    updated: document.getElementById("updated"),
+    tLibre: document.getElementById("t-libre"),
+    tOcc: document.getElementById("t-occ"),
+    tTotal: document.getElementById("t-total"),
+    search: document.getElementById("search"),
+    footer: document.getElementById("footer")
+  };
+
+  function fmtAge(iso) {
+    var then = new Date(iso).getTime();
+    if (isNaN(then)) return { text: "fecha desconocida", stale: true };
+    var mins = Math.round((Date.now() - then) / 60000);
+    var stale = mins >= STALE_MIN;
+    var text;
+    if (mins < 1) text = "actualizado hace un momento";
+    else if (mins === 1) text = "actualizado hace 1 min";
+    else if (mins < 60) text = "actualizado hace " + mins + " min";
+    else {
+      var h = Math.floor(mins / 60);
+      text = "actualizado hace " + h + (h === 1 ? " hora" : " horas");
+    }
+    return { text: text, stale: stale };
+  }
+
+  function zonaSort(a, b) {
+    return a.localeCompare(b, "es", { numeric: true });
+  }
+  function plazaSort(a, b) {
+    return a.code.localeCompare(b.code, "es", { numeric: true });
+  }
+
+  function render() {
+    var d = state.data;
+    if (!d) return;
+
+    var q = state.query.trim().toLowerCase();
+    var onlyLibre = state.filter === "libre";
+
+    var totalLibre = 0, totalOcc = 0, totalAll = 0;
+    var html = "";
+
+    var campaNames = Object.keys(d.campas).sort(zonaSort);
+
+    campaNames.forEach(function (cName) {
+      var plazas = d.campas[cName];
+      var shown = plazas.filter(function (p) {
+        if (onlyLibre && p.occupied) return false;
+        if (q) {
+          var hay = (p.code + " " + (p.zona || "")).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+
+      plazas.forEach(function (p) {
+        totalAll++;
+        if (p.occupied) totalOcc++; else totalLibre++;
+      });
+
+      if (shown.length === 0) return;
+
+      var libreAqui = shown.filter(function (p) { return !p.occupied; }).length;
+
+      html += '<section class="campa">';
+      html += '<div class="campa-head">';
+      html += '<span class="campa-name">' + esc(cName) + '</span>';
+      html += '<span class="campa-count"><b>' + libreAqui + '</b> libres · ' + shown.length + ' mostradas</span>';
+      html += '</div>';
+
+      var zonas = {};
+      shown.forEach(function (p) {
+        var z = p.zona || "—";
+        (zonas[z] = zonas[z] || []).push(p);
+      });
+      Object.keys(zonas).sort(zonaSort).forEach(function (z) {
+        html += '<div class="zona">';
+        html += '<div class="zona-label">Zona ' + esc(z) + '</div>';
+        html += '<div class="grid">';
+        zonas[z].sort(plazaSort).forEach(function (p) {
+          var cls = p.occupied ? "plaza" : "plaza libre";
+          var st = p.occupied ? "Ocupada" : "Libre";
+          html += '<div class="' + cls + '">' + esc(p.code) +
+                  '<span class="state">' + st + '</span></div>';
+        });
+        html += '</div></div>';
+      });
+      html += '</section>';
+    });
+
+    els.tLibre.textContent = totalLibre;
+    els.tOcc.textContent = totalOcc;
+    els.tTotal.textContent = totalAll;
+
+    if (html === "") {
+      html = '<div class="empty">No hay plazas que coincidan con la búsqueda.</div>';
+    }
+    els.main.innerHTML = html;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function applyMeta() {
+    var age = fmtAge(state.data.updatedAt);
+    els.updated.textContent = age.text;
+    els.updated.classList.toggle("stale", age.stale);
+  }
+
+  function load(initial) {
+    fetch(JSON_URL, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        state.data = data;
+        applyMeta();
+        render();
+        els.footer.textContent = "Solo lectura · Los datos pueden tener unos minutos de retraso · Para cambios, usa VIAN Campas";
+      })
+      .catch(function (err) {
+        if (initial) {
+          els.status.className = "status error";
+          els.status.textContent = "No se pudieron cargar las plazas. Revisa la conexión y vuelve a intentarlo.";
+        }
+      });
+  }
+
+  setInterval(function () { if (state.data) applyMeta(); }, 30000);
+  setInterval(function () { load(false); }, REFRESH_MS);
+
+  els.search.addEventListener("input", function () {
+    state.query = this.value;
+    render();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll(".filter-btn"), function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".filter-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      state.filter = btn.getAttribute("data-filter");
+      render();
+    });
+  });
+
+  load(true);
+})();
+</script>
+</body>
+</html>
