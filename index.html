@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
 <title>Plazas · Campas Madrid</title>
 <style>
@@ -14,12 +14,14 @@
     --fg: #eef2f6;
     --fg-muted: #9aa6b2;
     --libre: #34d27b;
-    --libre-bg: #11301f;
-    --libre-line: #1d5638;
-    --ocupada: #3a4450;
-    --ocupada-fg: #6b7682;
+    --libre-bg: #0f3b24;
+    --libre-line: #1d6840;
+    --ocupada: #2b333d;
+    --ocupada-fg: #5d6875;
     --accent: #ffb020;
     --stale: #ff6b5e;
+    --cell: 46px;
+    --gap: 5px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
@@ -28,153 +30,166 @@
     color: var(--fg);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     line-height: 1.4;
-    padding-bottom: 3rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: rgba(20,23,28,0.92);
-    backdrop-filter: blur(8px);
+    flex: 0 0 auto;
+    background: var(--surface);
     border-bottom: 1px solid var(--line);
-    padding: 0.85rem 1rem 0.7rem;
+    padding: 0.7rem 0.9rem 0;
   }
   .title-row {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.5rem;
   }
-  h1 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-  }
+  h1 { font-size: 1rem; font-weight: 700; }
   h1 .accent { color: var(--accent); }
   .updated {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--fg-muted);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
   .updated.stale { color: var(--stale); }
 
-  .totals {
+  .tabs {
     display: flex;
-    gap: 1.1rem;
-    font-size: 0.78rem;
-    color: var(--fg-muted);
-    font-variant-numeric: tabular-nums;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-  .totals b { color: var(--libre); font-weight: 700; font-size: 0.95rem; }
-  .totals .occ b { color: var(--fg); }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--fg-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.5rem 0.7rem;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab .count { font-size: 0.7rem; color: var(--libre); margin-left: 0.3rem; font-weight: 700; }
 
-  .controls {
-    padding: 0.7rem 1rem 0;
+  .toolbar {
+    flex: 0 0 auto;
     display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.55rem 0.9rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
   }
   #search {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     background: var(--surface-2);
     border: 1px solid var(--line);
     color: var(--fg);
-    font-size: 0.95rem;
-    padding: 0.6rem 0.8rem;
-    border-radius: 10px;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 9px;
     outline: none;
   }
   #search:focus { border-color: var(--accent); }
   #search::placeholder { color: var(--fg-muted); }
 
-  .filter-row { display: flex; gap: 0.4rem; }
-  .filter-btn {
-    flex: 1;
+  .toggle {
+    flex: 0 0 auto;
     background: var(--surface-2);
     border: 1px solid var(--line);
     color: var(--fg-muted);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    padding: 0.45rem;
-    border-radius: 8px;
+    padding: 0.5rem 0.6rem;
+    border-radius: 9px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
   }
-  .filter-btn.active {
-    background: var(--libre-bg);
-    border-color: var(--libre-line);
-    color: var(--libre);
-  }
-  .filter-btn.all.active {
-    background: var(--surface);
-    border-color: var(--accent);
-    color: var(--accent);
+  .toggle.active { background: var(--libre-bg); border-color: var(--libre-line); color: var(--libre); }
+
+  .zoom { flex: 0 0 auto; display: flex; gap: 0.2rem; }
+  .zoom button {
+    width: 32px;
+    height: 32px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  main { padding: 0.9rem 1rem 0; }
-
-  .campa { margin-bottom: 1.6rem; }
-  .campa-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 0.6rem;
-    padding-bottom: 0.4rem;
-    border-bottom: 1px solid var(--line);
+  .plan-wrap {
+    flex: 1 1 auto;
+    overflow: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.9rem;
   }
-  .campa-name { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.02em; }
-  .campa-count { font-size: 0.74rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
-  .campa-count b { color: var(--libre); }
-
-  .zona { margin-bottom: 0.9rem; }
-  .zona-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fg-muted);
-    margin-bottom: 0.4rem;
-  }
-  .grid {
+  .plan {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-    gap: 0.4rem;
+    gap: var(--gap);
+    width: max-content;
+    margin: 0 auto;
   }
+
   .plaza {
+    width: var(--cell);
+    height: var(--cell);
     background: var(--ocupada);
     color: var(--ocupada-fg);
     border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 0.5rem 0.3rem;
-    text-align: center;
-    font-size: 0.82rem;
-    font-weight: 600;
+    border-radius: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
-    position: relative;
+    text-align: center;
+    overflow: hidden;
+    padding: 2px;
   }
   .plaza.libre {
     background: var(--libre-bg);
     color: var(--libre);
     border-color: var(--libre-line);
   }
-  .plaza .state {
-    display: block;
-    font-size: 0.6rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-top: 0.15rem;
-    opacity: 0.85;
-  }
+  .plaza.dim { opacity: 0.18; }
+  .plaza.hit { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .plaza .z { font-size: 0.5rem; font-weight: 500; opacity: 0.7; }
 
-  .empty {
+  .totals {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding: 0.5rem 0.9rem;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    font-size: 0.76rem;
     color: var(--fg-muted);
-    font-size: 0.85rem;
-    text-align: center;
-    padding: 2rem 1rem;
+    font-variant-numeric: tabular-nums;
   }
+  .totals b { font-weight: 700; font-size: 0.9rem; }
+  .totals .l b { color: var(--libre); }
+  .totals .o b { color: var(--fg); }
 
   .status {
     text-align: center;
@@ -183,19 +198,6 @@
     padding: 3rem 1rem;
   }
   .status.error { color: var(--stale); }
-
-  footer {
-    margin-top: 1.5rem;
-    padding: 0 1rem;
-    font-size: 0.68rem;
-    color: var(--fg-muted);
-    text-align: center;
-    line-height: 1.6;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .plaza { transition: transform 0.08s ease; }
-  }
 </style>
 </head>
 <body>
@@ -204,138 +206,64 @@
     <h1>Plazas <span class="accent">Madrid</span></h1>
     <span class="updated" id="updated">—</span>
   </div>
-  <div class="totals">
-    <span><b id="t-libre">—</b> libres</span>
-    <span class="occ"><b id="t-occ">—</b> ocupadas</span>
-    <span><b id="t-total" style="color:var(--fg-muted)">—</b> total</span>
-  </div>
+  <div class="tabs" id="tabs"></div>
 </header>
 
-<div class="controls">
-  <input type="search" id="search" placeholder="Buscar plaza o zona…" autocomplete="off" inputmode="search">
-  <div class="filter-row">
-    <button class="filter-btn all active" data-filter="all">Todas</button>
-    <button class="filter-btn" data-filter="libre">Solo libres</button>
+<div class="toolbar">
+  <input type="search" id="search" placeholder="Buscar plaza…" autocomplete="off" inputmode="search">
+  <button class="toggle" id="toggleLibre">Solo libres</button>
+  <div class="zoom">
+    <button id="zoomOut" aria-label="Alejar">−</button>
+    <button id="zoomIn" aria-label="Acercar">+</button>
   </div>
 </div>
 
-<main id="main">
-  <div class="status" id="status">Cargando plazas…</div>
-</main>
+<div class="plan-wrap" id="planWrap">
+  <div class="status" id="status">Cargando plano…</div>
+</div>
 
-<footer id="footer"></footer>
+<div class="totals" id="totals" style="display:none">
+  <span class="l"><b id="t-libre">—</b> libres</span>
+  <span class="o"><b id="t-occ">—</b> ocupadas</span>
+  <span><b id="t-total">—</b> total</span>
+</div>
 
 <script>
 (function () {
   "use strict";
 
-  // El JSON vive en el mismo repo/origen → ruta relativa, sin CORS.
   var JSON_URL = "madrid.json";
-  var REFRESH_MS = 120000;   // recarga el JSON cada 2 min en el navegador
-  var STALE_MIN = 20;        // si el dato tiene más de 20 min, avisar
+  var REFRESH_MS = 120000;
+  var STALE_MIN = 20;
+  var CELL_MIN = 26, CELL_MAX = 70, CELL_STEP = 8;
 
-  var state = { data: null, filter: "all", query: "" };
+  var state = { data: null, activeCampa: null, onlyLibre: false, query: "", cell: 46 };
 
   var els = {
+    tabs: document.getElementById("tabs"),
+    planWrap: document.getElementById("planWrap"),
     status: document.getElementById("status"),
-    main: document.getElementById("main"),
     updated: document.getElementById("updated"),
+    search: document.getElementById("search"),
+    toggleLibre: document.getElementById("toggleLibre"),
+    zoomIn: document.getElementById("zoomIn"),
+    zoomOut: document.getElementById("zoomOut"),
+    totals: document.getElementById("totals"),
     tLibre: document.getElementById("t-libre"),
     tOcc: document.getElementById("t-occ"),
-    tTotal: document.getElementById("t-total"),
-    search: document.getElementById("search"),
-    footer: document.getElementById("footer")
+    tTotal: document.getElementById("t-total")
   };
 
   function fmtAge(iso) {
     var then = new Date(iso).getTime();
     if (isNaN(then)) return { text: "fecha desconocida", stale: true };
     var mins = Math.round((Date.now() - then) / 60000);
-    var stale = mins >= STALE_MIN;
-    var text;
+    var stale = mins >= STALE_MIN, text;
     if (mins < 1) text = "actualizado hace un momento";
     else if (mins === 1) text = "actualizado hace 1 min";
     else if (mins < 60) text = "actualizado hace " + mins + " min";
-    else {
-      var h = Math.floor(mins / 60);
-      text = "actualizado hace " + h + (h === 1 ? " hora" : " horas");
-    }
+    else { var h = Math.floor(mins / 60); text = "actualizado hace " + h + (h === 1 ? " hora" : " horas"); }
     return { text: text, stale: stale };
-  }
-
-  function zonaSort(a, b) {
-    return a.localeCompare(b, "es", { numeric: true });
-  }
-  function plazaSort(a, b) {
-    return a.code.localeCompare(b.code, "es", { numeric: true });
-  }
-
-  function render() {
-    var d = state.data;
-    if (!d) return;
-
-    var q = state.query.trim().toLowerCase();
-    var onlyLibre = state.filter === "libre";
-
-    var totalLibre = 0, totalOcc = 0, totalAll = 0;
-    var html = "";
-
-    var campaNames = Object.keys(d.campas).sort(zonaSort);
-
-    campaNames.forEach(function (cName) {
-      var plazas = d.campas[cName];
-      var shown = plazas.filter(function (p) {
-        if (onlyLibre && p.occupied) return false;
-        if (q) {
-          var hay = (p.code + " " + (p.zona || "")).toLowerCase();
-          if (hay.indexOf(q) === -1) return false;
-        }
-        return true;
-      });
-
-      plazas.forEach(function (p) {
-        totalAll++;
-        if (p.occupied) totalOcc++; else totalLibre++;
-      });
-
-      if (shown.length === 0) return;
-
-      var libreAqui = shown.filter(function (p) { return !p.occupied; }).length;
-
-      html += '<section class="campa">';
-      html += '<div class="campa-head">';
-      html += '<span class="campa-name">' + esc(cName) + '</span>';
-      html += '<span class="campa-count"><b>' + libreAqui + '</b> libres · ' + shown.length + ' mostradas</span>';
-      html += '</div>';
-
-      var zonas = {};
-      shown.forEach(function (p) {
-        var z = p.zona || "—";
-        (zonas[z] = zonas[z] || []).push(p);
-      });
-      Object.keys(zonas).sort(zonaSort).forEach(function (z) {
-        html += '<div class="zona">';
-        html += '<div class="zona-label">Zona ' + esc(z) + '</div>';
-        html += '<div class="grid">';
-        zonas[z].sort(plazaSort).forEach(function (p) {
-          var cls = p.occupied ? "plaza" : "plaza libre";
-          var st = p.occupied ? "Ocupada" : "Libre";
-          html += '<div class="' + cls + '">' + esc(p.code) +
-                  '<span class="state">' + st + '</span></div>';
-        });
-        html += '</div></div>';
-      });
-      html += '</section>';
-    });
-
-    els.tLibre.textContent = totalLibre;
-    els.tOcc.textContent = totalOcc;
-    els.tTotal.textContent = totalAll;
-
-    if (html === "") {
-      html = '<div class="empty">No hay plazas que coincidan con la búsqueda.</div>';
-    }
-    els.main.innerHTML = html;
   }
 
   function esc(s) {
@@ -344,48 +272,118 @@
     });
   }
 
+  function renderTabs() {
+    var d = state.data;
+    var names = Object.keys(d.campas).sort(function (a, b) {
+      return a.localeCompare(b, "es", { numeric: true });
+    });
+    if (state.activeCampa === null && names.length) state.activeCampa = names[0];
+
+    els.tabs.innerHTML = names.map(function (n) {
+      var plazas = d.campas[n];
+      var libres = plazas.filter(function (p) { return !p.occupied; }).length;
+      var active = n === state.activeCampa ? " active" : "";
+      return '<button class="tab' + active + '" data-campa="' + esc(n) + '">' +
+             esc(n) + '<span class="count">' + libres + '</span></button>';
+    }).join("");
+
+    Array.prototype.forEach.call(els.tabs.querySelectorAll(".tab"), function (t) {
+      t.addEventListener("click", function () {
+        state.activeCampa = t.getAttribute("data-campa");
+        renderTabs();
+        renderPlan();
+      });
+    });
+  }
+
+  function renderPlan() {
+    var d = state.data;
+    if (!d || state.activeCampa === null) return;
+    var plazas = d.campas[state.activeCampa];
+
+    var rows = plazas.map(function (p) { return p.row; });
+    var cols = plazas.map(function (p) { return p.col; });
+    var minR = Math.min.apply(null, rows), maxR = Math.max.apply(null, rows);
+    var minC = Math.min.apply(null, cols), maxC = Math.max.apply(null, cols);
+    var nRows = maxR - minR + 1, nCols = maxC - minC + 1;
+
+    var q = state.query.trim().toLowerCase();
+
+    var html = '<div class="plan" style="grid-template-columns:repeat(' + nCols +
+               ',var(--cell));grid-template-rows:repeat(' + nRows + ',var(--cell))">';
+
+    plazas.forEach(function (p) {
+      var gr = (p.row - minR) + 1;
+      var gc = (p.col - minC) + 1;
+      var cls = "plaza" + (p.occupied ? "" : " libre");
+
+      var matchQ = q && (p.code.toLowerCase().indexOf(q) !== -1 ||
+                          String(p.zona || "").toLowerCase().indexOf(q) !== -1);
+      var hideLibre = state.onlyLibre && p.occupied;
+
+      if (hideLibre) cls += " dim";
+      if (q) { if (matchQ) cls += " hit"; else cls += " dim"; }
+
+      html += '<div class="' + cls + '" style="grid-row:' + gr + ';grid-column:' + gc + '">' +
+              esc(p.code) +
+              (p.zona ? '<span class="z">' + esc(p.zona) + '</span>' : '') +
+              '</div>';
+    });
+    html += '</div>';
+
+    els.planWrap.innerHTML = html;
+    els.planWrap.scrollTop = 0;
+    els.planWrap.scrollLeft = 0;
+
+    var gl = 0, go = 0, gt = 0;
+    Object.keys(d.campas).forEach(function (n) {
+      d.campas[n].forEach(function (p) { gt++; if (p.occupied) go++; else gl++; });
+    });
+    els.tLibre.textContent = gl;
+    els.tOcc.textContent = go;
+    els.tTotal.textContent = gt;
+    els.totals.style.display = "flex";
+  }
+
   function applyMeta() {
     var age = fmtAge(state.data.updatedAt);
     els.updated.textContent = age.text;
     els.updated.classList.toggle("stale", age.stale);
   }
 
+  function setCell(v) {
+    state.cell = Math.max(CELL_MIN, Math.min(CELL_MAX, v));
+    document.documentElement.style.setProperty("--cell", state.cell + "px");
+  }
+
   function load(initial) {
     fetch(JSON_URL, { cache: "no-store" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (data) {
         state.data = data;
         applyMeta();
-        render();
-        els.footer.textContent = "Solo lectura · Los datos pueden tener unos minutos de retraso · Para cambios, usa VIAN Campas";
+        renderTabs();
+        renderPlan();
       })
-      .catch(function (err) {
+      .catch(function () {
         if (initial) {
           els.status.className = "status error";
-          els.status.textContent = "No se pudieron cargar las plazas. Revisa la conexión y vuelve a intentarlo.";
+          els.status.textContent = "No se pudo cargar el plano. Revisa la conexión y vuelve a intentarlo.";
         }
       });
   }
 
+  els.search.addEventListener("input", function () { state.query = this.value; renderPlan(); });
+  els.toggleLibre.addEventListener("click", function () {
+    state.onlyLibre = !state.onlyLibre;
+    this.classList.toggle("active", state.onlyLibre);
+    renderPlan();
+  });
+  els.zoomIn.addEventListener("click", function () { setCell(state.cell + CELL_STEP); });
+  els.zoomOut.addEventListener("click", function () { setCell(state.cell - CELL_STEP); });
+
   setInterval(function () { if (state.data) applyMeta(); }, 30000);
   setInterval(function () { load(false); }, REFRESH_MS);
-
-  els.search.addEventListener("input", function () {
-    state.query = this.value;
-    render();
-  });
-
-  Array.prototype.forEach.call(document.querySelectorAll(".filter-btn"), function (btn) {
-    btn.addEventListener("click", function () {
-      document.querySelectorAll(".filter-btn").forEach(function (b) { b.classList.remove("active"); });
-      btn.classList.add("active");
-      state.filter = btn.getAttribute("data-filter");
-      render();
-    });
-  });
 
   load(true);
 })();
